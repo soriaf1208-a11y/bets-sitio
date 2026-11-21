@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pronósticos del día</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mut:#5d6672;--ac:#0a8f4f;--bd:#e2e5ea}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1318;--card:#181e26;--tx:#eef1f5;--mut:#9aa4b2;--ac:#3ddc84;--bd:#262e39;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,sans-serif}
+main{max-width:680px;margin:0 auto;padding:16px}h1{font-size:22px;margin:8px 0 2px}.sub{color:var(--mut);font-size:13px;margin:0 0 14px}
+.tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px}
+.tabs button{border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 14px;border-radius:99px;font:inherit;font-size:14px;white-space:nowrap}
+.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;font-size:12px;color:var(--mut)}.m{font-size:18px;font-weight:650;margin:6px 0 10px}
+.row{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--bd);font-size:14px}
+.row small{color:var(--mut);display:block}.tag{font-size:12px;border-radius:6px;padding:2px 8px;color:#fff;height:fit-content}
+.alta{background:var(--ac)}.media{background:#e5a100}.baja{background:#8b95a3}
+.pl{font-size:13px;margin-top:8px;color:var(--mut)}.msg{color:var(--mut);padding:30px 0;text-align:center}
+.note{font-size:12px;color:var(--mut);margin-top:18px}
+</style></head><body><main>
+<h1>⚽ Pronósticos del día</h1><p class="sub" id="up">Cargando…</p>
+<div class="tabs" id="tabs"></div><div id="list"><p class="msg">Analizando partidos…</p></div>
+<p class="note">Estimaciones basadas en los últimos 5 partidos de cada equipo. "Esperado" es el promedio proyectado; la línea sugerida deja margen. Compáralas con la cuota real de tu casa de apuestas: solo tiene valor si paga más de lo que implica el dato. Ningún análisis garantiza resultados. +18, juega con responsabilidad.</p></main>
+<script>
+let D=[],f="Todas";const $=i=>document.getElementById(i);
+const hr=t=>new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+function r(){const L=["Todas",...new Set(D.map(x=>x.league))];
+$("tabs").innerHTML=L.map(l=>`<button class="${l===f?"on":""}" onclick="f='${l}';r()">${l}</button>`).join("");
+const v=D.filter(x=>f==="Todas"||x.league===f);
+$("list").innerHTML=v.length?v.map(g=>`<div class="card"><div class="top"><span>${g.league}</span><span>${hr(g.time)}</span></div><div class="m">${g.home} vs ${g.away}</div>
+${g.markets.map(k=>`<div class="row"><div>${k.m}<small>Esperado ${k.exp}${k.prob?` · ${k.prob}%`:""}</small></div><div style="text-align:right"><b>${k.pick}</b><br><span class="tag ${k.conf}">${k.conf}</span></div></div>`).join("")||'<p class="msg">Sin datos suficientes</p>'}
+${g.players.length?`<div class="pl"><b>Jugadores:</b> ${g.players.map(p=>`${p.name} (${p.sotPG} tiros a puerta/partido, ${p.goals} goles)`).join(" · ")}</div>`:""}</div>`).join(""):'<p class="msg">No hay partidos hoy en estas ligas.</p>'}
+fetch("/api/picks").then(r=>r.json()).then(j=>{if(j.error)throw new Error(j.error);D=j.picks;$("up").textContent="Actualizado "+new Date(j.updated).toLocaleString();r()}).catch(e=>{$("up").textContent="";$("list").innerHTML=`<p class="msg">No se pudo cargar: ${e.message}</p>`});
+</script></body></html>
